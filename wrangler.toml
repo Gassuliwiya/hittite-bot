@@ -114,6 +114,6 @@ id = "e76c58c53d2f4700bdbf0046901a1f1d"
 # index_name = "my-index"
 
 [triggers]
-crons = ["* * * * *"]
-# crons = ["0 3,9 * * *"] # 日本時間の１２時と１８時(UTC=9)
+crons = ["0 3,9 * * *"] # 日本時間の１２時と１８時(UTC=9)
+# crons = ["* * * * *"]
 
