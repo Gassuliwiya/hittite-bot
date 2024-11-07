@@ -1,18 +1,41 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.toml`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { BskyAgent } from '@atproto/api';
+
+interface CuneiformData {
+	reading: string;
+	imageUrl: string;
+}
+
+interface Env {
+	HANDLE: string;
+	PASSWORD: string;
+}
+
+const cuneiformData: CuneiformData[] = [{ reading: 'a', imageUrl: 'https://example.com/a.png' }];
+
+async function getRandomCuneiform(): Promise<CuneiformData> {
+	const randomIndex = Math.floor(Math.random() * cuneiformData.length);
+	return cuneiformData[randomIndex];
+}
+
+async function postCuneiform(agent: BskyAgent, data: CuneiformData, postTime: string) {
+	const postText = `読み方: ${data.reading}`;
+	await agent.post({
+		text: postText,
+		createdAt: postTime,
+		embed: {
+			$type: 'app.bsky.embed.images',
+			images: [{ alt: data.reading, image: data.imageUrl }],
+		},
+	});
+}
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+	async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+		const agent = new BskyAgent({ service: 'https//bsky.xocial' });
+		await agent.login({ identifier: env.HANDLE, password: env.PASSWORD });
+		const cuneiform = await getRandomCuneiform();
+		const postTime = new Date(controller.scheduledTime).toISOString();
+
+		await postCuneiform(agent, cuneiform, postTime);
 	},
-} satisfies ExportedHandler<Env>;
+};

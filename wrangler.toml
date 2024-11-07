@@ -112,3 +112,6 @@ enabled = true
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[triggers]
+crons = ["0 3,9 * * *"] # 日本時間の１２時と１８時(UTC=9)
